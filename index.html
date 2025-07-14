@@ -101,36 +101,48 @@
 <body>
     <div id="game-container"></div>
     <script>
-        // Danh sách câu với bản dịch tiếng Việt
+        // Danh sách câu tối ưu với bản dịch tiếng Việt
         const sentencesData = [
             { english: "He is young and friendly.", vietnamese: "Anh ấy trẻ và thân thiện." },
             { english: "My uncle is in his mid-twenties.", vietnamese: "Chú tôi khoảng giữa hai mươi tuổi." },
             { english: "The girl is tall and slim.", vietnamese: "Cô gái cao và mảnh mai." },
             { english: "She has curly black hair.", vietnamese: "Cô ấy có tóc xoăn màu đen." },
-            { english: "He is a bit short, but very strong.", vietnamese: "Anh ấy hơi thấp, nhưng rất khỏe." },
+            { english: "He is a bit short.", vietnamese: "Anh ấy hơi thấp." },
+            { english: "He is very strong.", vietnamese: "Anh ấy rất khỏe." },
             { english: "She is slim and wears glasses.", vietnamese: "Cô ấy mảnh mai và đeo kính." },
-            { english: "The man is old, but he still works.", vietnamese: "Người đàn ông đã già, nhưng vẫn làm việc." },
+            { english: "The man is old.", vietnamese: "Người đàn ông đã già." },
+            { english: "He still works.", vietnamese: "Anh ấy vẫn làm việc." },
             { english: "He has blue eyes.", vietnamese: "Anh ấy có đôi mắt xanh." },
             { english: "The baby is chubby and cute.", vietnamese: "Em bé mũm mĩm và dễ thương." },
             { english: "She has brown eyes.", vietnamese: "Cô ấy có đôi mắt nâu." },
-            { english: "I have straight, black hair.", vietnamese: "Tôi có tóc thẳng màu đen." },
-            { english: "She has long, blond hair.", vietnamese: "Cô ấy có tóc dài màu vàng." },
+            { english: "I have straight black hair.", vietnamese: "Tôi có tóc thẳng màu đen." },
+            { english: "She has long blond hair.", vietnamese: "Cô ấy có tóc dài màu vàng." },
             { english: "He is of medium height.", vietnamese: "Anh ấy có chiều cao trung bình." },
             { english: "Age is just a number.", vietnamese: "Tuổi tác chỉ là một con số." },
             { english: "His hair is very curly.", vietnamese: "Tóc anh ấy rất xoăn." },
             { english: "Her weight is healthy for her height.", vietnamese: "Cân nặng của cô ấy phù hợp với chiều cao." },
             { english: "He checks his height every year.", vietnamese: "Anh ấy kiểm tra chiều cao mỗi năm." },
-            { english: "She is talkative – she talks a lot in class.", vietnamese: "Cô ấy nói nhiều – cô ấy nói rất nhiều trong lớp." },
-            { english: "My friend is cheerful – he smiles a lot.", vietnamese: "Bạn tôi vui vẻ – anh ấy cười rất nhiều." },
-            { english: "He is impatient – he hates waiting.", vietnamese: "Anh ấy thiếu kiên nhẫn – anh ấy ghét phải chờ đợi." },
-            { english: "My sister is a bit bossy – she likes telling others what to do.", vietnamese: "Chị tôi hơi ra lệnh – chị ấy thích bảo người khác phải làm gì." },
-            { english: "He is very generous – he always shares his snacks.", vietnamese: "Anh ấy rất hào phóng – anh ấy luôn chia sẻ đồ ăn vặt." },
-            { english: "She is popular – many people like her.", vietnamese: "Cô ấy nổi tiếng – nhiều người thích cô ấy." },
-            { english: "Do not be selfish – think about others.", vietnamese: "Đừng ích kỷ – hãy nghĩ cho người khác." },
-            { english: "He is very honest – he always tells the truth.", vietnamese: "Anh ấy rất trung thực – anh ấy luôn nói sự thật." },
-            { english: "She is energetic – she does many things every day.", vietnamese: "Cô ấy tràn đầy năng lượng – cô ấy làm nhiều việc mỗi ngày." },
-            { english: "The festival was so vibrant – full of color and fun.", vietnamese: "Lễ hội rất sôi động – đầy màu sắc và niềm vui." },
-            { english: "Only he can pull it off with style – that bright orange jacket!", vietnamese: "Chỉ anh ấy có thể mặc đẹp – chiếc áo khoác cam sáng!" },
+            { english: "She is talkative.", vietnamese: "Cô ấy nói nhiều." },
+            { english: "She talks a lot in class.", vietnamese: "Cô ấy nói rất nhiều trong lớp." },
+            { english: "My friend is cheerful.", vietnamese: "Bạn tôi vui vẻ." },
+            { english: "He smiles a lot.", vietnamese: "Anh ấy cười rất nhiều." },
+            { english: "He is impatient.", vietnamese: "Anh ấy thiếu kiên nhẫn." },
+            { english: "He hates waiting.", vietnamese: "Anh ấy ghét phải chờ đợi." },
+            { english: "My sister is a bit bossy.", vietnamese: "Chị tôi hơi ra lệnh." },
+            { english: "She likes telling others what to do.", vietnamese: "Chị ấy thích bảo người khác phải làm gì." },
+            { english: "He is very generous.", vietnamese: "Anh ấy rất hào phóng." },
+            { english: "He always shares his snacks.", vietnamese: "Anh ấy luôn chia sẻ đồ ăn vặt." },
+            { english: "She is popular.", vietnamese: "Cô ấy nổi tiếng." },
+            { english: "Many people like her.", vietnamese: "Nhiều người thích cô ấy." },
+            { english: "Do not be selfish.", vietnamese: "Đừng ích kỷ." },
+            { english: "Think about others.", vietnamese: "Hãy nghĩ cho người khác." },
+            { english: "He is very honest.", vietnamese: "Anh ấy rất trung thực." },
+            { english: "He always tells the truth.", vietnamese: "Anh ấy luôn nói sự thật." },
+            { english: "She is energetic.", vietnamese: "Cô ấy tràn đầy năng lượng." },
+            { english: "She does many things every day.", vietnamese: "Cô ấy làm nhiều việc mỗi ngày." },
+            { english: "The festival was so vibrant.", vietnamese: "Lễ hội rất sôi động." },
+            { english: "It was full of color and fun.", vietnamese: "Nó đầy màu sắc và niềm vui." },
+            { english: "He wears that bright orange jacket with style.", vietnamese: "Anh ấy mặc chiếc áo khoác cam sáng với phong cách." },
             { english: "I had steak and potatoes for dinner.", vietnamese: "Tôi ăn bít tết và khoai tây cho bữa tối." },
             { english: "He loves pasta with tomato sauce.", vietnamese: "Anh ấy thích mì Ý với sốt cà chua." },
             { english: "She does not like cabbage.", vietnamese: "Cô ấy không thích bắp cải." },
@@ -166,16 +178,18 @@
             wrongAttempts: 0
         };
 
-        // Hàm chuẩn hóa chuỗi cho so sánh và hiển thị
+        // Hàm chuẩn hóa chuỗi cho so sánh (bỏ dấu câu để linh hoạt hơn)
         function normalizeString(str) {
             if (typeof str !== 'string') {
                 console.warn('Invalid input to normalizeString:', str);
                 return '';
             }
             return str
-                .replace(/\s+/g, ' ')
-                .replace(/[^a-zA-Z0-9.,!?\s-]/g, '')
-                .trim();
+                .replace(/\s+/g, ' ') // Thay nhiều khoảng trắng bằng một
+                .replace(/[.,!?\–-]/g, '') // Bỏ dấu câu: chấm, phẩy, chấm than, hỏi, gạch ngang
+                .replace(/[^a-zA-Z0-9\s]/g, '') // Bỏ ký tự đặc biệt khác
+                .trim()
+                .toLowerCase(); // Chuyển về chữ thường
         }
 
         // Hàm làm sạch chuỗi cho SpeechSynthesisUtterance
@@ -186,7 +200,7 @@
             }
             return str
                 .replace(/\s+/g, ' ')
-                .replace(/[^a-zA-Z0-9.,!?\s-]/g, '')
+                .replace(/[^a-zA-Z0-9.,!?\s-]/g, '') // Giữ dấu câu cho phát âm
                 .trim();
         }
 
@@ -328,7 +342,8 @@
             const normalizedInput = normalizeString(userInput);
             const normalizedCorrect = normalizeString(state.sentences[state.currentIndex].english);
 
-            if (normalizedInput.toLowerCase() === normalizedCorrect.toLowerCase()) {
+            console.log(`Comparing: Input="${normalizedInput}", Correct="${normalizedCorrect}"`);
+            if (normalizedInput === normalizedCorrect) {
                 stopAutoPlay();
                 result.textContent = "Correct!";
                 result.style.color = "green";
@@ -353,7 +368,7 @@
 
         // Hàm hiển thị gợi ý
         function showHint() {
-            const hintText = `${normalizeString(state.sentences[state.currentIndex].english)} (${state.sentences[state.currentIndex].vietnamese})`;
+            const hintText = `${state.sentences[state.currentIndex].english} (${state.sentences[state.currentIndex].vietnamese})`;
             document.getElementById('hint').textContent = `Hint: ${hintText}`;
         }
 
