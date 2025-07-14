@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spelling Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Roboto', Helvetica, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+        }
+        #game-container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: clamp(14px, 4vw, 16px);
+            width: 100%;
+            max-width: 400px;
+            margin: 10px 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Helvetica, sans-serif;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: clamp(14px, 4vw, 16px);
+            margin: 5px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            touch-action: manipulation;
+            font-family: 'Roboto', Helvetica, sans-serif;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #hint {
+            color: #555;
+            font-style: italic;
+            margin-top: 10px;
+            font-size: clamp(12px, 3.5vw, 14px);
+            user-select: none;
+            font-family: 'Roboto', Helvetica, sans-serif;
+            line-height: 1.5;
+        }
+        #completion {
+            font-size: clamp(14px, 4vw, 18px);
+            font-weight: bold;
+            margin-top: 10px;
+            font-family: 'Roboto', Helvetica, sans-serif;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        @keyframes firework {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty));
+                opacity: 0;
+            }
+        }
+        @media (max-width: 600px) {
+            #game-container {
+                padding: 15px;
+            }
+            button {
+                padding: 8px 16px;
+                font-size: clamp(12px, 3.5vw, 14px);
+            }
+            input[type="text"] {
+                font-size: clamp(12px, 3.5vw, 14px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <script>
+        // Danh sách câu với bản dịch tiếng Việt
+        const sentencesData = [
+            { english: "He is young and friendly.", vietnamese: "Anh ấy trẻ và thân thiện." },
+            { english: "My uncle is in his mid-twenties.", vietnamese: "Chú tôi khoảng giữa hai mươi tuổi." },
+            { english: "The girl is tall and slim.", vietnamese: "Cô gái cao và mảnh mai." },
+            { english: "She has curly black hair.", vietnamese: "Cô ấy có tóc xoăn màu đen." },
+            { english: "He is a bit short, but very strong.", vietnamese: "Anh ấy hơi thấp, nhưng rất khỏe." },
+            { english: "She is slim and wears glasses.", vietnamese: "Cô ấy mảnh mai và đeo kính." },
+            { english: "The man is old, but he still works.", vietnamese: "Người đàn ông đã già, nhưng vẫn làm việc." },
+            { english: "He has blue eyes.", vietnamese: "Anh ấy có đôi mắt xanh." },
+            { english: "The baby is chubby and cute.", vietnamese: "Em bé mũm mĩm và dễ thương." },
+            { english: "She has brown eyes.", vietnamese: "Cô ấy có đôi mắt nâu." },
+            { english: "I have straight, black hair.", vietnamese: "Tôi có tóc thẳng màu đen." },
+            { english: "She has long, blond hair.", vietnamese: "Cô ấy có tóc dài màu vàng." },
+            { english: "He is of medium height.", vietnamese: "Anh ấy có chiều cao trung bình." },
+            { english: "Age is just a number.", vietnamese: "Tuổi tác chỉ là một con số." },
+            { english: "His hair is very curly.", vietnamese: "Tóc anh ấy rất xoăn." },
+            { english: "Her weight is healthy for her height.", vietnamese: "Cân nặng của cô ấy phù hợp với chiều cao." },
+            { english: "He checks his height every year.", vietnamese: "Anh ấy kiểm tra chiều cao mỗi năm." },
+            { english: "She is talkative – she talks a lot in class.", vietnamese: "Cô ấy nói nhiều – cô ấy nói rất nhiều trong lớp." },
+            { english: "My friend is cheerful – he smiles a lot.", vietnamese: "Bạn tôi vui vẻ – anh ấy cười rất nhiều." },
+            { english: "He is impatient – he hates waiting.", vietnamese: "Anh ấy thiếu kiên nhẫn – anh ấy ghét phải chờ đợi." },
+            { english: "My sister is a bit bossy – she likes telling others what to do.", vietnamese: "Chị tôi hơi ra lệnh – chị ấy thích bảo người khác phải làm gì." },
+            { english: "He is very generous – he always shares his snacks.", vietnamese: "Anh ấy rất hào phóng – anh ấy luôn chia sẻ đồ ăn vặt." },
+            { english: "She is popular – many people like her.", vietnamese: "Cô ấy nổi tiếng – nhiều người thích cô ấy." },
+            { english: "Do not be selfish – think about others.", vietnamese: "Đừng ích kỷ – hãy nghĩ cho người khác." },
+            { english: "He is very honest – he always tells the truth.", vietnamese: "Anh ấy rất trung thực – anh ấy luôn nói sự thật." },
+            { english: "She is energetic – she does many things every day.", vietnamese: "Cô ấy tràn đầy năng lượng – cô ấy làm nhiều việc mỗi ngày." },
+            { english: "The festival was so vibrant – full of color and fun.", vietnamese: "Lễ hội rất sôi động – đầy màu sắc và niềm vui." },
+            { english: "Only he can pull it off with style – that bright orange jacket!", vietnamese: "Chỉ anh ấy có thể mặc đẹp – chiếc áo khoác cam sáng!" },
+            { english: "I had steak and potatoes for dinner.", vietnamese: "Tôi ăn bít tết và khoai tây cho bữa tối." },
+            { english: "He loves pasta with tomato sauce.", vietnamese: "Anh ấy thích mì Ý với sốt cà chua." },
+            { english: "She does not like cabbage.", vietnamese: "Cô ấy không thích bắp cải." },
+            { english: "We eat rice every day.", vietnamese: "Chúng tôi ăn cơm mỗi ngày." },
+            { english: "I had some chicken and soup.", vietnamese: "Tôi ăn một ít gà và súp." },
+            { english: "I ate an egg this morning.", vietnamese: "Tôi ăn một quả trứng sáng nay." },
+            { english: "She drinks milk every night.", vietnamese: "Cô ấy uống sữa mỗi tối." },
+            { english: "Fish is good for the brain.", vietnamese: "Cá tốt cho trí não." },
+            { english: "I eat cereal with milk.", vietnamese: "Tôi ăn ngũ cốc với sữa." },
+            { english: "We picked some fresh grapes.", vietnamese: "Chúng tôi hái một ít nho tươi." },
+            { english: "I bought a loaf of bread.", vietnamese: "Tôi mua một ổ bánh mì." },
+            { english: "He likes biscuits and tea.", vietnamese: "Anh ấy thích bánh quy và trà." },
+            { english: "I spread butter on toast.", vietnamese: "Tôi phết bơ lên bánh mì nướng." },
+            { english: "We should eat more fruit and vegetables.", vietnamese: "Chúng ta nên ăn nhiều trái cây và rau củ hơn." },
+            { english: "Carbohydrates give us energy.", vietnamese: "Tinh bột cung cấp năng lượng cho chúng ta." },
+            { english: "Proteins help us grow.", vietnamese: "Chất đạm giúp chúng ta phát triển." },
+            { english: "Too much fat is not good for health.", vietnamese: "Quá nhiều chất béo không tốt cho sức khỏe." },
+            { english: "We painted our faces for the carnival.", vietnamese: "Chúng tôi vẽ mặt cho lễ hội hóa trang." },
+            { english: "The children wore traditional clothes.", vietnamese: "Trẻ em mặc trang phục truyền thống." },
+            { english: "We played games all afternoon.", vietnamese: "Chúng tôi chơi trò chơi suốt buổi chiều." },
+            { english: "We ate a traditional meal with our family.", vietnamese: "Chúng tôi ăn một bữa ăn truyền thống cùng gia đình." },
+            { english: "Everyone watched a fireworks display.", vietnamese: "Mọi người xem màn trình diễn pháo hoa." },
+            { english: "We listened to a band at the festival.", vietnamese: "Chúng tôi nghe một ban nhạc tại lễ hội." }
+        ];
+
+        // Biến trạng thái
+        let state = {
+            sentences: [],
+            currentIndex: 0,
+            completedCount: 0,
+            isPlaying: false,
+            autoPlayInterval: null,
+            wrongAttempts: 0
+        };
+
+        // Hàm chuẩn hóa chuỗi cho so sánh và hiển thị
+        function normalizeString(str) {
+            if (typeof str !== 'string') {
+                console.warn('Invalid input to normalizeString:', str);
+                return '';
+            }
+            return str
+                .replace(/\s+/g, ' ')
+                .replace(/[^a-zA-Z0-9.,!?\s-]/g, '')
+                .trim();
+        }
+
+        // Hàm làm sạch chuỗi cho SpeechSynthesisUtterance
+        function sanitizeString(str) {
+            if (typeof str !== 'string') {
+                console.warn('Invalid input to sanitizeString:', str);
+                return '';
+            }
+            return str
+                .replace(/\s+/g, ' ')
+                .replace(/[^a-zA-Z0-9.,!?\s-]/g, '')
+                .trim();
+        }
+
+        // Hàm xáo trộn mảng
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Hàm tạo pháo hoa
+        function createFirework() {
+            const input = document.getElementById('userInput');
+            const gameContainer = document.getElementById('game-container');
+            if (!input || !gameContainer) return;
+            const inputRect = input.getBoundingClientRect();
+            const containerRect = gameContainer.getBoundingClientRect();
+            const x = inputRect.left - containerRect.left + inputRect.width / 2;
+            const y = inputRect.top - containerRect.top + inputRect.height / 2;
+
+            for (let i = 0; i < 100; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = Math.random() * 150 + 50;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+                particle.style.backgroundColor = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.setProperty('--tx', `${tx}px`);
+                particle.style.setProperty('--ty', `${ty}px`);
+                particle.style.animation = `firework ${Math.random() * 0.5 + 0.5}s linear forwards`;
+                gameContainer.appendChild(particle);
+                setTimeout(() => particle.remove(), 1000);
+            }
+        }
+
+        // Hàm tạo pháo hoa khi hoàn thành
+        function createCelebrationFireworks() {
+            const gameContainer = document.getElementById('game-container');
+            if (!gameContainer) return;
+            const containerRect = gameContainer.getBoundingClientRect();
+            const containerWidth = containerRect.width;
+            const containerHeight = containerRect.height;
+
+            for (let j = 0; j < 10; j++) {
+                setTimeout(() => {
+                    for (let i = 0; i < 20; i++) {
+                        const particle = document.createElement('div');
+                        particle.className = 'particle';
+                        const x = Math.random() * containerWidth;
+                        const y = Math.random() * containerHeight;
+                        const angle = Math.random() * 2 * Math.PI;
+                        const distance = Math.random() * 150 + 50;
+                        const tx = Math.cos(angle) * distance;
+                        const ty = Math.sin(angle) * distance;
+                        particle.style.backgroundColor = `rgb(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255})`;
+                        particle.style.left = `${x}px`;
+                        particle.style.top = `${y}px`;
+                        particle.style.setProperty('--tx', `${tx}px`);
+                        particle.style.setProperty('--ty', `${ty}px`);
+                        particle.style.animation = `firework ${Math.random() * 0.5 + 0.5}s linear forwards`;
+                        gameContainer.appendChild(particle);
+                        setTimeout(() => particle.remove(), 1000);
+                    }
+                }, j * 200);
+            }
+        }
+
+        // Hàm phát câu
+        function playSentence() {
+            if (state.isPlaying) return;
+            state.isPlaying = true;
+            try {
+                const rawText = state.sentences[state.currentIndex].english;
+                const sanitizedText = sanitizeString(rawText);
+                if (!sanitizedText) {
+                    throw new Error('Empty text after sanitization');
+                }
+                console.log(`Playing sentence ${state.currentIndex + 1}/${state.sentences.length}: "${rawText}" (sanitized: "${sanitizedText}")`);
+                const utterance = new SpeechSynthesisUtterance(sanitizedText);
+                utterance.lang = 'en-US';
+                utterance.onend = () => {
+                    state.isPlaying = false;
+                };
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                console.error(`Error in SpeechSynthesisUtterance at sentence ${state.currentIndex + 1}: "${state.sentences[state.currentIndex].english}"`, error);
+                state.isPlaying = false;
+                moveToNextSentence();
+            }
+        }
+
+        // Hàm tự động phát
+        function startAutoPlay() {
+            if (state.autoPlayInterval) clearInterval(state.autoPlayInterval);
+            state.autoPlayInterval = setInterval(() => {
+                if (!state.isPlaying) {
+                    playSentence();
+                }
+            }, 3000);
+        }
+
+        // Hàm dừng tự động phát
+        function stopAutoPlay() {
+            if (state.autoPlayInterval) {
+                clearInterval(state.autoPlayInterval);
+                state.autoPlayInterval = null;
+            }
+        }
+
+        // Hàm chuyển câu
+        function moveToNextSentence() {
+            state.currentIndex++;
+            if (state.currentIndex >= state.sentences.length) {
+                renderCompletionScreen();
+            } else {
+                const userInput = document.getElementById('userInput');
+                const hint = document.getElementById('hint');
+                const result = document.getElementById('result');
+                const completion = document.getElementById('completion');
+                if (userInput) userInput.value = '';
+                if (hint) hint.textContent = '';
+                if (result) result.textContent = '';
+                if (completion) completion.textContent = `Completed: ${state.completedCount}/${state.sentences.length}`;
+                playSentence();
+                startAutoPlay();
+            }
+        }
+
+        // Hàm kiểm tra câu trả lời
+        function checkAnswer() {
+            const userInput = document.getElementById('userInput').value;
+            const result = document.getElementById('result');
+            const normalizedInput = normalizeString(userInput);
+            const normalizedCorrect = normalizeString(state.sentences[state.currentIndex].english);
+
+            if (normalizedInput.toLowerCase() === normalizedCorrect.toLowerCase()) {
+                stopAutoPlay();
+                result.textContent = "Correct!";
+                result.style.color = "green";
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(createFirework, i * 200);
+                }
+                state.wrongAttempts = 0;
+                state.completedCount++;
+                setTimeout(moveToNextSentence, 2000);
+            } else {
+                state.wrongAttempts++;
+                result.textContent = `Incorrect, try again! (${3 - state.wrongAttempts} attempts left)`;
+                result.style.color = "red";
+                if (state.wrongAttempts >= 3) {
+                    stopAutoPlay();
+                    state.wrongAttempts = 0;
+                    result.textContent = "Moving to next sentence...";
+                    setTimeout(moveToNextSentence, 1000);
+                }
+            }
+        }
+
+        // Hàm hiển thị gợi ý
+        function showHint() {
+            const hintText = `${normalizeString(state.sentences[state.currentIndex].english)} (${state.sentences[state.currentIndex].vietnamese})`;
+            document.getElementById('hint').textContent = `Hint: ${hintText}`;
+        }
+
+        // Hàm xóa gợi ý
+        function clearHint() {
+            const hint = document.getElementById('hint');
+            if (hint) hint.textContent = '';
+        }
+
+        // Hàm render giao diện bắt đầu
+        function renderStartScreen() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.innerHTML = `
+                <h1>Spelling Game: People and Daily Activities</h1>
+                <p>Click Start to begin the game!</p>
+                <button id="startButton">Start</button>
+            `;
+            document.getElementById('startButton').addEventListener('click', startGame);
+        }
+
+        // Hàm render giao diện game
+        function renderGameScreen() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.innerHTML = `
+                <h1>Spelling Game: People and Daily Activities</h1>
+                <p>Listen and type the sentence you hear:</p>
+                <input type="text" id="userInput" placeholder="Type the sentence here">
+                <br>
+                <button id="playButton">Play Sentence</button>
+                <button id="checkButton">Check Answer</button>
+                <button id="hintButton">Hint</button>
+                <button id="resetButton">Reset Game</button>
+                <p id="completion">Completed: 0/${state.sentences.length}</p>
+                <p id="hint"></p>
+                <p id="result"></p>
+            `;
+            document.getElementById('playButton').addEventListener('click', playSentence);
+            document.getElementById('checkButton').addEventListener('click', checkAnswer);
+            document.getElementById('hintButton').addEventListener('click', showHint);
+            document.getElementById('resetButton').addEventListener('click', resetGame);
+            document.getElementById('userInput').addEventListener('focus', clearHint);
+            document.getElementById('userInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+            document.getElementById('hint').addEventListener('copy', (e) => e.preventDefault());
+        }
+
+        // Hàm render giao diện hoàn thành
+        function renderCompletionScreen() {
+            const gameContainer = document.getElementById('game-container');
+            gameContainer.innerHTML = `
+                <h1>Congratulations! You have completed ${state.completedCount} sentences!</h1>
+            `;
+            createCelebrationFireworks();
+        }
+
+        // Hàm bắt đầu game
+        function startGame() {
+            state.sentences = shuffleArray(sentencesData);
+            state.currentIndex = 0;
+            state.completedCount = 0;
+            state.wrongAttempts = 0;
+            state.isPlaying = false;
+            stopAutoPlay();
+            renderGameScreen();
+            playSentence();
+            startAutoPlay();
+        }
+
+        // Hàm reset game
+        function resetGame() {
+            stopAutoPlay();
+            state.sentences = [];
+            state.currentIndex = 0;
+            state.completedCount = 0;
+            state.wrongAttempts = 0;
+            state.isPlaying = false;
+            renderStartScreen();
+        }
+
+        // Khởi tạo
+        renderStartScreen();
+    </script>
+</body>
+</html>
